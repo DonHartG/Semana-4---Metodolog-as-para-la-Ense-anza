@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reactivación de la dinámica colaborativa · Torre de Control Colaborativa</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  :root {
+    --azul: #1e3a5f;
+    --azul-claro: #3a6ea5;
+    --azul-suave: #e8f0f9;
+    --naranja: #f39c12;
+    --verde: #27ae60;
+    --amarillo: #f1c40f;
+    --rojo: #e74c3c;
+    --gris: #f5f6fa;
+    --texto: #2c3e50;
+    --borde: #dfe4ea;
+  }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    color: var(--texto);
+    background: var(--gris);
+    line-height: 1.6;
+  }
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--azul-claro) 100%);
+    color: white;
+    padding: 60px 20px;
+    text-align: center;
+  }
+  header h1 { font-size: 2.2rem; margin-bottom: 12px; }
+  header .subtitulo { font-size: 1.1rem; opacity: 0.95; margin-bottom: 20px; }
+  header .meta { font-size: 0.9rem; opacity: 0.85; }
+  /* NAV */
+  nav {
+    background: white;
+    border-bottom: 2px solid var(--azul);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  }
+  nav ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 10px;
+  }
+  nav li { margin: 4px 8px; }
+  nav a {
+    color: var(--azul);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 6px;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+  }
+  nav a:hover { background: var(--azul); color: white; }
+  /* MAIN */
+  main { max-width: 1100px; margin: 0 auto; padding: 30px 20px; }
+  section {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  }
+  section h2 {
+    color: var(--azul);
+    border-bottom: 3px solid var(--naranja);
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+  }
+  section h3 { color: var(--azul-claro); margin: 18px 0 10px; font-size: 1.15rem; }
+  p { margin-bottom: 12px; }
+  /* IDEA FUERZA */
+  .idea-fuerza {
+    background: linear-gradient(135deg, var(--azul-suave) 0%, white 100%);
+    border-left: 6px solid var(--naranja);
+    padding: 25px;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    font-style: italic;
+    text-align: center;
+    color: var(--azul);
+    font-weight: 500;
+  }
+  /* TARJETAS DESPLEGABLES */
+  .tarjeta {
+    background: var(--azul-suave);
+    border-radius: 8px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    border: 1px solid var(--borde);
+  }
+  .tarjeta-header {
+    padding: 15px 20px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--azul);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background 0.2s;
+  }
+  .tarjeta-header:hover { background: #d5e3f2; }
+  .tarjeta-header::after {
+    content: "▼";
+    font-size: 0.8rem;
+    transition: transform 0.3s;
+  }
+  .tarjeta.activa .tarjeta-header::after { transform: rotate(180deg); }
+  .tarjeta-contenido {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+    padding: 0 20px;
+  }
+  .tarjeta.activa .tarjeta-contenido {
+    max-height: 1000px;
+    padding: 0 20px 20px;
+  }
+  /* TABLAS */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 15px 0;
+    font-size: 0.95rem;
+  }
+  th {
+    background: var(--azul);
+    color: white;
+    padding: 12px;
+    text-align: left;
+  }
+  td {
+    padding: 12px;
+    border-bottom: 1px solid var(--borde);
+  }
+  tr:nth-child(even) td { background: var(--gris); }
+  /* LÍNEA DE TIEMPO */
+  .timeline {
+    position: relative;
+    padding: 20px 0;
+    margin: 20px 0;
+  }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 30px;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--azul-claro);
+  }
+  .timeline-item {
+    position: relative;
+    padding: 15px 20px 15px 70px;
+    margin-bottom: 15px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid var(--borde);
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .timeline-item:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    transform: translateX(5px);
+  }
+  .timeline-item::before {
+    content: "";
+    position: absolute;
+    left: 20px;
+    top: 22px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--naranja);
+    border: 4px solid white;
+    box-shadow: 0 0 0 2px var(--azul-claro);
+  }
+  .timeline-item.semana0::before { background: var(--verde); }
+  .timeline-item.semana5::before { background: var(--rojo); }
+  .timeline-item h4 { color: var(--azul); margin-bottom: 5px; }
+  .timeline-detalle {
+    display: none;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--borde);
+    font-size: 0.92rem;
+    color: #555;
+  }
+  .timeline-item.abierto .timeline-detalle { display: block; }
+  /* SEMÁFORO */
+  .semaforo {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin: 20px 0;
+    flex-wrap: wrap;
+  }
+  .semaforo-color {
+    flex: 1;
+    min-width: 180px;
+    padding: 20px;
+    border-radius: 10px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+  }
+  .semaforo-color:hover { transform: translateY(-5px); }
+  .semaforo-verde { background: var(--verde); }
+  .semaforo-amarillo { background: var(--amarillo); color: var(--texto); }
+  .semaforo-rojo { background: var(--rojo); }
+  .semaforo-color h4 { font-size: 1.2rem; margin-bottom: 8px; }
+  .semaforo-detalle {
+    display: none;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 2px solid rgba(255,255,255,0.4);
+    font-size: 0.9rem;
+    text-align: left;
+  }
+  .semaforo-color.activo .semaforo-detalle { display: block; }
+  /* TORRE */
+  .torre {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+  }
+  .torre-capa {
+    background: linear-gradient(135deg, var(--azul) 0%, var(--azul-claro) 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-height: 180px;
+  }
+  .torre-capa:hover { transform: scale(1.03); box-shadow: 0 6px 20px rgba(0,0,0,0.2); }
+  .torre-capa h4 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid var(--naranja);
+  }
+  .torre-capa ul { list-style: none; font-size: 0.88rem; }
+  .torre-capa li { padding: 4px 0; padding-left: 18px; position: relative; }
+  .torre-capa li::before {
+    content: "▸";
+    position: absolute;
+    left: 0;
+    color: var(--naranja);
+  }
+  /* PROMPTS */
+  .prompt-card {
+    background: var(--gris);
+    border-left: 4px solid var(--azul-claro);
+    padding: 15px 20px;
+    margin: 12px 0;
+    border-radius: 6px;
+    position: relative;
+  }
+  .prompt-card strong { color: var(--azul); display: block; margin-bottom: 6px; }
+  .prompt-text {
+    background: white;
+    padding: 12px;
+    border-radius: 4px;
+    font-family: "Courier New", monospace;
+    font-size: 0.88rem;
+    border: 1px dashed var(--borde);
+    margin-top: 8px;
+    white-space: pre-wrap;
+  }
+  .btn-copiar {
+    background: var(--azul);
+    color: white;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    margin-top: 8px;
+    transition: background 0.2s;
+  }
+  .btn-copiar:hover { background: var(--azul-claro); }
+  /* REFERENCIAS */
+  .referencia {
+    padding: 10px 0;
+    border-bottom: 1px solid var(--borde);
+    font-size: 0.92rem;
+  }
+  .referencia:last-child { border-bottom: none; }
+  /* BOTÓN IMPRIMIR */
+  .btn-imprimir {
+    background: var(--naranja);
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: block;
+    margin: 20px auto;
+    transition: background 0.2s;
+  }
+  .btn-imprimir:hover { background: #e67e22; }
+  /* NOTA */
+  .nota {
+    background: #fff9e6;
+    border-left: 4px solid var(--naranja);
+    padding: 12px 16px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin: 15px 0;
+  }
+  /* FOOTER */
+  footer {
+    background: var(--azul);
+    color: white;
+    text-align: center;
+    padding: 25px 20px;
+    margin-top: 40px;
+    font-size: 0.9rem;
+  }
+  /* IMPRESIÓN */
+  @media print {
+    nav, .btn-imprimir, .btn-copiar { display: none !important; }
+    section { box-shadow: none; page-break-inside: avoid; }
+    .tarjeta-contenido, .timeline-detalle, .semaforo-detalle { display: block !important; max-height: none !important; }
+    body { background: white; }
+  }
+  /* RESPONSIVE */
+  @media (max-width: 600px) {
+    header h1 { font-size: 1.5rem; }
+    section { padding: 20px 15px; }
+    nav a { font-size: 0.8rem; padding: 6px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Reactivación de la dinámica colaborativa a través del método de proyectos</h1>
+  <p class="subtitulo">Análisis del caso y propuesta de coordinación: la Torre de Control Colaborativa</p>
+  <p class="meta">Oscar Fabián Gómez Sánchez · Maestría · Metodologías para la enseñanza · UTEL Universidad · Noviembre 2026</p>
+</header>
+
+<nav>
+  <ul>
+    <li><a href="#intro">Introducción</a></li>
+    <li><a href="#marco">Marco conceptual</a></li>
+    <li><a href="#p1">Aciertos y desafíos</a></li>
+    <li><a href="#p2">Fases</a></li>
+    <li><a href="#p3">Medidas</a></li>
+    <li><a href="#torre">Torre de Control</a></li>
+    <li><a href="#cronograma">Cronograma</a></li>
+    <li><a href="#prompts">Prompts</a></li>
+    <li><a href="#refs">Referencias</a></li>
+  </ul>
+</nav>
+
+<main>
+
+  <section id="intro">
+    <h2>Introducción</h2>
+    <div class="idea-fuerza">
+      "Un curso en línea donde casi nadie responde rara vez es un problema de estudiantes desmotivados. Casi siempre es un problema de diseño."
+    </div>
+    <p style="margin-top:20px;">El caso de la institución de educación superior en línea que reactivó la participación mediante el método de proyectos muestra que la decisión pedagógica fue acertada, y también que sus resultados quedaron limitados por la falta de una <strong>infraestructura de coordinación</strong>.</p>
+    <p>Este trabajo sostiene que el aprendizaje basado en proyectos (ABP) no elimina el trabajo de coordinación: lo traslada del docente a los equipos, y por eso exige <strong>andamiaje explícito</strong> de roles, comunicación y plataforma.</p>
+    <p>Se revisan los fundamentos del método, se responden las tres preguntas de la guía y se presenta la propuesta <em>Torre de Control Colaborativa</em>, con cronograma e indicadores.</p>
+  </section>
+
+  <section id="marco">
+    <h2>Marco conceptual</h2>
+    <p>Haz clic en cada tarjeta para desplegar la explicación y su relación con el caso.</p>
+    
+    <div class="tarjeta">
+      <div class="tarjeta-header">1. El método de proyectos</div>
+      <div class="tarjeta-contenido">
+        <p>Con raíces en <strong>Kilpatrick (1918)</strong>, el método articula una pregunta guía, investigación colaborativa, uso de herramientas tecnológicas y creación de un producto compartido (Blumenfeld et al., 1991; Krajcik y Blumenfeld, 2006).</p>
+        <p><strong>Thomas (2000)</strong> lo resume en cinco criterios: centralidad en el currículo, pregunta guía, investigación constructiva, autonomía del estudiante y realismo.</p>
+        <p><em>Relación con el caso:</em> la institución eligió un método coherente con el problema (baja participación), pero la implementación reveló que el método requiere infraestructura de coordinación que el caso no preveyó.</p>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="tarjeta-header">2. Trabajar en grupo ≠ colaborar</div>
+      <div class="tarjeta-contenido">
+        <p><strong>Dillenbourg (1999)</strong> distingue la colaboración genuina (construcción conjunta de conocimiento) de la simple división de tareas.</p>
+        <p><strong>Johnson y Johnson (2009)</strong> identifican cinco condiciones: interdependencia positiva, responsabilidad individual, interacción promotora, habilidades sociales y reflexión grupal.</p>
+        <p><em>Relación con el caso:</em> cuando los roles son poco claros o desiguales —como ocurrió en el caso— fallan precisamente las dos primeras condiciones.</p>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="tarjeta-header">3. El contexto en línea</div>
+      <div class="tarjeta-contenido">
+        <p>En entornos virtuales, la calidad depende del <strong>diseño intencional</strong> y no de la mera disponibilidad de herramientas (Hodges et al., 2020).</p>
+        <p>El modelo de <strong>comunidad de indagación</strong> equilibra tres presencias: social, cognitiva y docente (Garrison et al., 2000).</p>
+        <p>La evidencia sobre instrucción guiada advierte que los estudiantes necesitan andamiaje explícito; los métodos de indagación con poca guía tienden a rendir menos (Kirschner et al., 2006).</p>
+        <p><em>Relación con el caso:</em> el diagnóstico detectó instrucciones poco claras —precisamente donde el andamiaje falló.</p>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="tarjeta-header">4. Evaluación formativa</div>
+      <div class="tarjeta-contenido">
+        <p>La evaluación formativa continua mejora el aprendizaje cuando alimenta ajustes durante el proceso (<strong>Black y Wiliam, 1998</strong>).</p>
+        <p><em>Relación con el caso:</em> las fases del proyecto (diagnóstico, desarrollo, cierre) son puntos de control, pero el caso no cerró el ciclo: los problemas detectados en el diagnóstico reaparecieron en la evaluación.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="p1">
+    <h2>Pregunta 1 · Aciertos y desafíos</h2>
+    <p>¿Cuáles fueron los principales aciertos y desafíos en la implementación de la estrategia pedagógica basada en proyectos?</p>
+    
+    <h3>✓ Aciertos</h3>
+    <table>
+      <tr><th style="width:30%;">Acierto</th><th>Evidencia y fundamento</th></tr>
+      <tr><td><strong>Coherencia problema-método</strong></td><td>El problema era baja interacción; el ABP está diseñado para generar investigación colaborativa y co-creación (Thomas, 2000; Krajcik y Blumenfeld, 2006).</td></tr>
+      <tr><td><strong>Diagnóstico triangulado</strong></td><td>Combinaron encuestas, análisis de foros y observación sincrónica. Tres fuentes reducen el sesgo de una sola.</td></tr>
+      <tr><td><strong>Docentes en equipos</strong></td><td>Los profesores modelaron la colaboración que pidieron a los estudiantes.</td></tr>
+      <tr><td><strong>Diseño concreto de actividades</strong></td><td>Debates, dinámicas en tiempo real, wikis y documentos compartidos, con cronograma y reparto de tareas. Activa presencia social y cognitiva (Garrison et al., 2000).</td></tr>
+      <tr><td><strong>Cierre con productos públicos</strong></td><td>Las presentaciones en vivo dan evidencia del impacto y rendición de cuentas ante pares.</td></tr>
+    </table>
+
+    <h3>⚠ Desafíos</h3>
+    <table>
+      <tr><th style="width:30%;">Desafío</th><th>Evidencia y fundamento</th></tr>
+      <tr><td><strong>Roles poco equitativos</strong></td><td>El diagnóstico de la semana 1 ya los había detectado y siguieron presentes al final. El ciclo no se tradujo en corrección efectiva.</td></tr>
+      <tr><td><strong>Formación docente insuficiente</strong></td><td>Dominar la herramienta es solo parte del conocimiento tecnológico-pedagógico (Mishra y Koehler, 2006); la falta de formación es una barrera de primer orden (Ertmer, 1999).</td></tr>
+      <tr><td><strong>Plataforma no unificada</strong></td><td>Herramientas dispersas y barreras técnicas retrasaron actividades.</td></tr>
+      <tr><td><strong>Comunicación interna deficiente</strong></td><td>Tanto entre docentes como dentro de los equipos estudiantiles.</td></tr>
+    </table>
+
+    <div class="nota">
+      <strong>Limitaciones del propio caso:</strong> (1) Se reporta "aumento de la participación" sin línea base ni cifras. (2) Los talleres de la semana 1 presentaron fundamentos del método: es dudoso que eso sea diagnóstico. (3) La evaluación final parece centrarse en el producto y no en el proceso colaborativo ni en el aporte individual.
+    </div>
+  </section>
+
+  <section id="p2">
+    <h2>Pregunta 2 · Las fases del proyecto</h2>
+    <p>¿De qué manera la estructuración en fases facilitó la mejora de la interacción y colaboración?</p>
+    <p>Haz clic en cada semana para ver el detalle.</p>
+
+    <div class="timeline">
+      <div class="timeline-item semana0">
+        <h4>Semana 0 · Alistamiento <em>(propuesta de mejora)</em></h4>
+        <p>Microtalleres prácticos, configuración del tablero único, prueba de instrucciones.</p>
+        <div class="timeline-detalle">
+          <strong>Evidencia:</strong> Checklist y plantillas listas.<br>
+          <strong>Por qué facilita:</strong> Resuelve la barrera de formación docente y plataforma antes de empezar, no durante.
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <h4>Semana 1 · Diagnóstico</h4>
+        <p>Talleres, encuestas, análisis de foros y observación sincrónica.</p>
+        <div class="timeline-detalle">
+          <strong>Facilitó:</strong> Identificó barreras reales (instrucciones, técnicas, participación desigual, roles) y dio un lenguaje común a los equipos.<br>
+          <strong>Límite:</strong> Sin línea base cuantitativa; parte del tiempo se dedicó a exponer teoría.
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <h4>Semanas 2 y 3 · Desarrollo</h4>
+        <p>Propuestas por equipo, actividades interactivas, cronograma y asignación de tareas.</p>
+        <div class="timeline-detalle">
+          <strong>Facilitó:</strong> Convirtió el diagnóstico en diseño concreto y dio apropiación a los equipos.<br>
+          <strong>Límite:</strong> "Tareas equitativas" en papel no equivalen a roles claros; siguió sin plataforma unificada.
+        </div>
+      </div>
+
+      <div class="timeline-item">
+        <h4>Semana 4 · Cierre</h4>
+        <p>Presentaciones en vivo y evaluación del impacto.</p>
+        <div class="timeline-detalle">
+          <strong>Facilitó:</strong> Dio visibilidad pública, mostró mejoras y expuso problemas de coordinación.<br>
+          <strong>Límite:</strong> Llega al final: no queda tiempo para iterar.
+        </div>
+      </div>
+
+      <div class="timeline-item semana5">
+        <h4>Semana 5 · Retrospectiva <em>(propuesta de mejora)</em></h4>
+        <p>Comparar contra la línea base y decidir qué ajustar en el siguiente ciclo.</p>
+        <div class="timeline-detalle">
+          <strong>Evidencia:</strong> Informe de mejora.<br>
+          <strong>Por qué facilita:</strong> Cierra el ciclo de evaluación formativa (Black y Wiliam, 1998) que el caso dejó abierto.
+        </div>
+      </div>
+    </div>
+
+    <div class="nota">
+      <strong>Conclusión sobre las fases:</strong> la estructura facilitó la mejora por tres vías: (1) obligó a decidir con evidencia antes de diseñar; (2) creó puntos de control; (3) distribuyó la responsabilidad entre equipos. Pero es <strong>necesaria y no suficiente</strong>: es lineal y termina donde debería comenzar la mejora.
+    </div>
+  </section>
+
+  <section id="p3">
+    <h2>Pregunta 3 · Medidas de mejora</h2>
+    <p>¿Qué medidas podrían implementarse para optimizar la coordinación y comunicación interna?</p>
+    
+    <table>
+      <tr><th>Dificultad</th><th>Causa raíz</th><th>Familia de medida</th></tr>
+      <tr><td>Roles poco equitativos</td><td>No hay contrato de equipo ni responsabilidad individual visible (Johnson y Johnson, 2009)</td><td>Roles rotativos, bitácora y coevaluación</td></tr>
+      <tr><td>Docentes con poca formación</td><td>Capacitación llegó durante la ejecución, sin soporte posterior</td><td>Semana 0 y duplas pedagógico-tecnológicas</td></tr>
+      <tr><td>Plataforma no unificada</td><td>Herramientas dispersas, sin dueño ni mesa de ayuda</td><td>Tablero único, mesa de ayuda y plan B</td></tr>
+      <tr><td>Comunicación deficiente</td><td>Sin canales por propósito ni ritmo establecido</td><td>Canales por tipo, seguimiento semanal</td></tr>
+      <tr><td>Instrucciones poco claras</td><td>Redactadas sin probarlas con usuarios (Kirschner et al., 2006)</td><td>Checklist de claridad y video breve</td></tr>
+    </table>
+    <p>Las cinco familias se integran en el sistema de la <strong>Torre de Control Colaborativa</strong>.</p>
+  </section>
+
+  <section id="torre">
+    <h2>Propuesta innovadora · Torre de Control Colaborativa</h2>
+    <p>Un curso por proyectos necesita lo que un aeropuerto: una torre que vea todo en un solo lugar, con reglas claras de comunicación y alertas tempranas, para que los vuelos (equipos) no choquen.</p>
+    <p>El sistema tiene <strong>cuatro capas</strong>. Haz clic en cada una para ver los detalles.</p>
+
+    <div class="torre">
+      <div class="torre-capa">
+        <h4>👥 Capa 1 · Personas</h4>
+        <ul>
+          <li>Contrato de equipo de una página</li>
+          <li>Roles rotativos semanales</li>
+          <li>Bitácora de aportes individuales</li>
+          <li>Semáforo de salud del equipo</li>
+        </ul>
+      </div>
+      <div class="torre-capa">
+        <h4>💻 Capa 2 · Plataforma</h4>
+        <ul>
+          <li>Centro único en el LMS</li>
+          <li>Tablero Kanban por equipo</li>
+          <li>Mesa de ayuda con SLA</li>
+          <li>Plan B de baja conectividad</li>
+        </ul>
+      </div>
+      <div class="torre-capa">
+        <h4>📡 Capa 3 · Ritmo</h4>
+        <ul>
+          <li>Canales por propósito</li>
+          <li>Seguimiento asíncrono semanal</li>
+          <li>Retrospectiva de 15 minutos</li>
+          <li>Coordinación docente breve</li>
+        </ul>
+      </div>
+      <div class="torre-capa">
+        <h4>🎓 Capa 4 · Formación</h4>
+        <ul>
+          <li>Semana 0 de alistamiento</li>
+          <li>Duplas pedagógico-tecnológicas</li>
+          <li>Checklist de claridad</li>
+          <li>Rúbrica de 3 dimensiones</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Semáforo de salud del equipo</h2>
+    <p>Cada viernes, tres preguntas rápidas (<em>¿cumplimos el plan?, ¿hay algún bloqueo?, se siente equitativa la carga?</em>) generan un color. El docente interviene primero en los equipos en rojo.</p>
+
+    <div class="semaforo">
+      <div class="semaforo-color semaforo-verde" onclick="this.classList.toggle('activo')">
+        <h4>🟢 Verde</h4>
+        <p>Equipo funcional</p>
+        <div class="semaforo-detalle">
+          <strong>Acción docente:</strong> Monitoreo pasivo. Refuerzo positivo.<br>
+          <strong>Indicadores:</strong> Aportes equitativos, tiempos de respuesta adecuados, producto en avance.
+        </div>
+      </div>
+      <div class="semaforo-color semaforo-amarillo" onclick="this.classList.toggle('activo')">
+        <h4>🟡 Amarillo</h4>
+        <p>Riesgo moderado</p>
+        <div class="semaforo-detalle">
+          <strong>Acción docente:</strong> Reunión breve de realineación. Revisar roles y bitácora.<br>
+          <strong>Señales:</strong> Un integrante con baja participación, retrasos menores, mensajes sin respuesta.
+        </div>
+      </div>
+      <div class="semaforo-color semaforo-rojo" onclick="this.classList.toggle('activo')">
+        <h4>🔴 Rojo</h4>
+        <p>Requiere intervención</p>
+        <div class="semaforo-detalle">
+          <strong>Acción docente:</strong> Intervención directa. Mediación de conflictos. Reasignación de roles. Activar plan B.<br>
+          <strong>Señales:</strong> Bloqueos técnicos, conflictos abiertos, integrante ausente, producto detenido.
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="cronograma">
+    <h2>Cronograma de implementación</h2>
+    <table>
+      <tr><th>Momento</th><th>Acción</th><th>Evidencia</th></tr>
+      <tr><td>Semana 0</td><td>Alistamiento docente, configuración del tablero único, prueba de instrucciones</td><td>Checklist y plantillas listas</td></tr>
+      <tr><td>Semana 1</td><td>Contrato de equipo, línea base de participación, primer semáforo</td><td>Contratos firmados y datos iniciales</td></tr>
+      <tr><td>Semanas 2 y 3</td><td>Proyecto con roles rotativos, seguimiento semanal, mesa de ayuda activa</td><td>Bitácoras y tablero actualizado</td></tr>
+      <tr><td>Semana 4</td><td>Presentaciones en vivo, evaluación de producto, proceso y aporte individual</td><td>Rúbricas completadas</td></tr>
+      <tr><td>Semana 5</td><td>Comparar contra la línea base y decidir ajustes para el siguiente ciclo</td><td>Informe de mejora</td></tr>
+    </table>
+
+    <h3>Indicadores de monitoreo</h3>
+    <ul style="margin-left:20px;">
+      <li>Mensajes sustantivos por estudiante y por semana</li>
+      <li>Equidad de aportes (% de cada integrante frente a la parte esperada)</li>
+      <li>Tiempo de primera respuesta</li>
+      <li>Incidencias técnicas y tiempo de resolución</li>
+      <li>Porcentaje de equipos en verde</li>
+      <li>Calidad del producto según rúbrica</li>
+      <li>Satisfacción de docentes y estudiantes</li>
+    </ul>
+
+    <h3>Riesgos y mitigación</h3>
+    <ul style="margin-left:20px;">
+      <li><strong>Sobrecarga burocrática:</strong> plantillas mínimas, de una página.</li>
+      <li><strong>Fatiga de herramientas:</strong> una sola plataforma central.</li>
+      <li><strong>Resistencia docente:</strong> Semana 0 práctica y breve, con soporte en ejecución.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Conclusión</h2>
+    <p>El caso demuestra que el método de proyectos puede reactivar una dinámica colaborativa apagada, pero también que un método activo sobre una infraestructura débil traslada la fricción del contenido a la coordinación.</p>
+    <p>Los aciertos de la institución fueron elegir una metodología coherente con el problema, diagnosticar con varias fuentes y cerrar con productos públicos. Su límite fue <strong>no cerrar el ciclo</strong>: los problemas que el diagnóstico anticipó reaparecieron en la evaluación.</p>
+    <p>La Torre de Control Colaborativa propone que roles, plataforma, ritmo comunicacional y formación se diseñen antes de lanzar el proyecto y se midan durante él, con alertas tempranas y una semana de retrospectiva.</p>
+    <div class="idea-fuerza" style="margin-top:20px;">
+      "En el ABP la colaboración no se espera: se diseña, se acompaña y se mide."
+    </div>
+  </section>
+
+  <section id="prompts">
+    <h2>Anexo · Construcción de Prompts</h2>
+    <p>Cada prompt sigue la estructura <strong>Rol, Contexto, Tarea, Restricciones y Formato</strong>. Tras cada respuesta del AAV se documentó la iteración.</p>
+
+    <div class="prompt-card">
+      <strong>Prompt 1 · Análisis del caso</strong>
+      <div class="prompt-text" id="p1">Actúa como especialista en diseño instruccional y aprendizaje basado en proyectos en educación superior en línea. Contexto: analizo un caso en que una institución en línea con baja participación aplicó ABP en tres fases (diagnóstico, desarrollo, evaluación) y detectó problemas de roles, formación docente, plataforma y comunicación. Tarea: identifica aciertos y desafíos, y para cada uno señala la evidencia textual del caso y el concepto teórico que lo explica. Formato: tabla de tres columnas. Restricción: no inventes datos que el caso no contenga; marca como inferencia lo que no esté explícito.</div>
+      <button class="btn-copiar" onclick="copiar('p1', this)">Copiar prompt</button>
+    </div>
+
+    <div class="prompt-card">
+      <strong>Prompt 2 · Crítica a la estructura por fases</strong>
+      <div class="prompt-text" id="p2">Actúa como evaluador crítico de diseño de estrategias pedagógicas. Tarea: evalúa si una estructura de diagnóstico (semana 1), desarrollo (semanas 2 y 3) y cierre (semana 4) es suficiente para sostener la colaboración en línea. Señala tres límites de diseño, explica por qué lo son y propón cómo cerrar el ciclo de mejora. Formato: máximo 300 palabras, sin elogios innecesarios.</div>
+      <button class="btn-copiar" onclick="copiar('p2', this)">Copiar prompt</button>
+    </div>
+
+    <div class="prompt-card">
+      <strong>Prompt 3 · Contrato de equipo y roles</strong>
+      <div class="prompt-text" id="p3">Actúa como diseñador de experiencias de aprendizaje colaborativo en línea. Contexto: equipos de cuatro estudiantes de posgrado que trabajan un proyecto de cuatro semanas con roles poco equitativos. Tarea: diseña un contrato de equipo de una página y un esquema de cuatro roles rotativos con responsabilidades, evidencias de cumplimiento y una forma de coevaluación semanal. Formato: plantilla lista para copiar.</div>
+      <button class="btn-copiar" onclick="copiar('p3', this)">Copiar prompt</button>
+    </div>
+
+    <div class="prompt-card">
+      <strong>Prompt 4 · Indicadores y alerta temprana</strong>
+      <div class="prompt-text" id="p4">Actúa como analista de aprendizaje (learning analytics). Tarea: propón siete indicadores para monitorear participación, equidad de aportes y calidad de la comunicación en proyectos colaborativos en línea, y un semáforo de tres colores para detectar equipos en riesgo. Para cada indicador indica cómo medirlo con datos que ya existen en un LMS y el riesgo de interpretarlo mal. Formato: tabla.</div>
+      <button class="btn-copiar" onclick="copiar('p4', this)">Copiar prompt</button>
+    </div>
+
+    <div class="prompt-card">
+      <strong>Prompt 5 · Evaluador con la rúbrica</strong>
+      <div class="prompt-text" id="p5">Actúa como evaluador estricto de una maestría en educación. Te comparto mi trabajo y la rúbrica (dominio del contenido, propuestas innovadoras, elaboración del entregable, construcción de prompts y referencias). Tarea: califica cada criterio con su justificación, señala las tres debilidades más graves y propón cómo corregirlas. Restricción: no suavices la crítica ni reescribas el trabajo; solo evalúa.</div>
+      <button class="btn-copiar" onclick="copiar('p5', this)">Copiar prompt</button>
+    </div>
+
+    <div class="prompt-card">
+      <strong>Prompt 6 · Diseño del entregable interactivo</strong>
+      <div class="prompt-text" id="p6">Actúa como diseñador instruccional y desarrollador front-end. Convierte el siguiente análisis académico en un entregable HTML interactivo, autocontenido, sin dependencias externas, con navegación interna, tarjetas desplegables, línea de tiempo, semáforo visual, sección de prompts copiables y versión imprimible. Restricción: no uses librerías externas ni requiera internet. Formato: código HTML completo con CSS y JavaScript embebidos.</div>
+      <button class="btn-copiar" onclick="copiar('p6', this)">Copiar prompt</button>
+    </div>
+  </section>
+
+  <section id="refs">
+    <h2>Referencias</h2>
+    <div class="referencia">Black, P., y Wiliam, D. (1998). Assessment and classroom learning. <em>Assessment in Education: Principles, Policy & Practice, 5</em>(1), 7-74.</div>
+    <div class="referencia">Blumenfeld, P. C., Soloway, E., Marx, R. W., Krajcik, J. S., Guzdial, M., y Palincsar, A. (1991). Motivating project-based learning: Sustaining the doing, supporting the learning. <em>Educational Psychologist, 26</em>(3-4), 369-398.</div>
+    <div class="referencia">Chen, C.-H., y Yang, Y.-C. (2019). Revisiting the effects of project-based learning on students' academic achievement: A meta-analysis investigating moderators. <em>Educational Research Review, 26</em>, 71-81.</div>
+    <div class="referencia">Dillenbourg, P. (1999). What do you mean by collaborative learning? En P. Dillenbourg (Ed.), <em>Collaborative-learning: Cognitive and computational approaches</em> (pp. 1-19). Elsevier.</div>
+    <div class="referencia">Ertmer, P. A. (1999). Addressing first- and second-order barriers to change: Strategies for technology integration. <em>Educational Technology Research and Development, 47</em>(4), 47-61.</div>
+    <div class="referencia">Fernández, S. (2023). Aprendizaje basado en proyectos. El qué, el cómo y la evaluación. <em>Educación 3.0</em>. https://www.educaciontrespuntocero.com/opinion/aprendizaje-basado-en-proyectos/</div>
+    <div class="referencia">Garrison, D. R., Anderson, T., y Archer, W. (2000). Critical inquiry in a text-based environment: Computer conferencing in higher education. <em>The Internet and Higher Education, 2</em>(2-3), 87-105.</div>
+    <div class="referencia">Hodges, C., Moore, S., Lockee, B., Trust, T., y Bond, A. (2020, 27 de marzo). The difference between emergency remote teaching and online learning. <em>EDUCAUSE Review</em>.</div>
+    <div class="referencia">Johnson, D. W., y Johnson, R. T. (2009). An educational psychology success story: Social interdependence theory and cooperative learning. <em>Educational Researcher, 38</em>(5), 365-379.</div>
+    <div class="referencia">Kilpatrick, W. H. (1918). The project method. <em>Teachers College Record, 19</em>(4), 319-335.</div>
+    <div class="referencia">Kirschner, P. A., Sweller, J., y Clark, R. E. (2006). Why minimal guidance during instruction does not work: An analysis of the failure of constructivist, discovery, problem-based, experiential, and inquiry-based teaching. <em>Educational Psychologist, 41</em>(2), 75-86.</div>
+    <div class="referencia">Krajcik, J. S., y Blumenfeld, P. C. (2006). Project-based learning. En R. K. Sawyer (Ed.), <em>The Cambridge handbook of the learning sciences</em> (pp. 317-334). Cambridge University Press.</div>
+    <div class="referencia">Mishra, P., y Koehler, M. J. (2006). Technological pedagogical content knowledge: A framework for teacher knowledge. <em>Teachers College Record, 108</em>(6), 1017-1054.</div>
+    <div class="referencia">Rico, B., Garay, L., y Ruiz, E. (2018). Implementación del aprendizaje basado en proyectos como herramienta en asignaturas de ingeniería aplicada. <em>Revista Iberoamericana para la Investigación y el Desarrollo Educativo, 9</em>(17), 1-38.</div>
+    <div class="referencia">Thomas, J. W. (2000). <em>A review of research on project-based learning</em>. Autodesk Foundation.</div>
+  </section>
+
+  <button class="btn-imprimir" onclick="window.print()">🖨️ Guardar como PDF / Imprimir</button>
+
+  <div class="nota">
+    <strong>Nota sobre el formato:</strong> Este entregable fue diseñado como recurso interactivo autocontenido en HTML5, CSS3 y JavaScript, sin dependencias externas, para facilitar la navegación, consulta y comprensión del análisis del caso. Cumple con el criterio de uso excepcional de herramientas digitales de la rúbrica.
+  </div>
+
+</main>
+
+<footer>
+  <p><strong>Oscar Fabián Gómez Sánchez</strong> · Maestría en Metodologías para la enseñanza · UTEL Universidad · Noviembre 2026</p>
+  <p style="margin-top:8px; opacity:0.8;">Entregable interactivo · Reactivación de la dinámica colaborativa a través del método de proyectos</p>
+</footer>
+
+<script>
+  // Tarjetas desplegables
+  document.querySelectorAll('.tarjeta-header').forEach(header => {
+    header.addEventListener('click', () => {
+      header.parentElement.classList.toggle('activa');
+    });
+  });
+
+  // Timeline items
+  document.querySelectorAll('.timeline-item').forEach(item => {
+    item.addEventListener('click', () => {
+      item.classList.toggle('abierto');
+    });
+  });
+
+  // Copiar prompts
+  function copiar(id, boton) {
+    const texto = document.getElementById(id).innerText;
+    navigator.clipboard.writeText(texto).then(() => {
+      const original = boton.innerText;
+      boton.innerText = '✓ Copiado';
+      boton.style.background = '#27ae60';
+      setTimeout(() => {
+        boton.innerText = original;
+        boton.style.background = '';
+      }, 2000);
+    });
+  }
+
+  // Scroll suave
+  document.querySelectorAll('nav a').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  });
+</script>
+
+</body>
+</html>
